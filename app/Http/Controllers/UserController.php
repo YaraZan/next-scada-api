@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-class AccountController extends Controller
+class UserController extends Controller
 {
     public function create(Request $request)
     {
