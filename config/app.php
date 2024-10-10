@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Root user credentials
+    |--------------------------------------------------------------------------
+    |
+    | These credentials will be used for root user creation.
+    |
+    */
+
+    'root_user' => [
+        'name' => env('APP_ROOT_USER_NAME', ''),
+        'email' => env('APP_ROOT_USER_EMAIL', ''),
+        'password' => env('APP_ROOT_USER_PASSWORD', ''),
+    ]
+
 ];
