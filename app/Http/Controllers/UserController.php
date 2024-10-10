@@ -9,13 +9,14 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function create(Request $request)
+    public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|min:5|max:255',
             'email' => 'required|email|unique:users|max:255',
             'password' => 'required|max:20|min:10',
             'confirm_password' => 'required|max:20|min:10',
+            'device_name' => 'required',
         ]);
 
         if ($request->password !== $request->confirm_password) {
@@ -30,7 +31,7 @@ class UserController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return $user->createToken($request->device_name ?? 'default-device')->plainTextToken;
+        return $user->createToken($request->device_name)->plainTextToken;
     }
 
     public function login(Request $request)
@@ -41,9 +42,9 @@ class UserController extends Controller
             'device_name' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', '=', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
