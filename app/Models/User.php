@@ -48,9 +48,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function isAdmin(): bool
+    public function isRoot(): bool
     {
-        return optional($this->role())->name === 'admin';
+        return optional($this->role)->name === 'root';
     }
 
     public function role()
