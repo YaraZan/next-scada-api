@@ -2,6 +2,8 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 trait HasUuid
@@ -9,10 +11,9 @@ trait HasUuid
     /**
      * Boot function from Laravel to automatically generate and store UUIDs.
      */
-    protected static function boot()
+    protected static function bootHasUuid()
     {
         static::creating(function ($model) {
-            // Generate UUID and store as binary(16)
             $model->uuid = hex2bin(str_replace('-', '', (string) Str::uuid()));
         });
     }
@@ -22,14 +23,28 @@ trait HasUuid
      */
     public function getUuidAttribute($value)
     {
-        return vsprintf('%s-%s-%s-%s-%s', str_split(bin2hex($value), 4));
+        // Convert binary UUID to hexadecimal string
+        $hex = bin2hex($value);
+
+        // Format the hex string into the correct UUID format
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr($hex, 0, 8),   // 8 characters
+            substr($hex, 8, 4),   // 4 characters
+            substr($hex, 12, 4),  // 4 characters
+            substr($hex, 16, 4),  // 4 characters
+            substr($hex, 20, 12)   // 12 characters
+        );
     }
 
+
     /**
-     * Mutator to convert UUID string to binary when setting.
+     * Find a model by its UUID.
      */
-    public function setUuidAttribute($value)
+    public static function findByUuid(string $uuid)
     {
-        $this->attributes['uuid'] = hex2bin(str_replace('-', '', $value));
+        $binaryUuid = hex2bin(str_replace('-', '', $uuid));
+
+        return static::where('uuid', '=', $binaryUuid)->firstOrFail();
     }
 }
