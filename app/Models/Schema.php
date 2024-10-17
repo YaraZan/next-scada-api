@@ -22,4 +22,9 @@ class Schema extends Model
     {
         return $this->belongsTo(Workspace::class);
     }
+
+    public function nodes()
+    {
+        return $this->hasMany(Node::class);
+    }
 }
