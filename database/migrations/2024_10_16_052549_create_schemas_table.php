@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('schemas', function (Blueprint $table) {
             $table->id();
             $table->binary('uuid', 16)->unique();
-            $table->foreignId('workspace_id')->index();
+            $table->foreignId('workspace_id')->constrained('workspaces')->onDelete('cascade');
             $table->string('name');
             $table->timestamps();
         });

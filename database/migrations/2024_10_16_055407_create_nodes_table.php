@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('nodes', function (Blueprint $table) {
             $table->id();
             $table->binary('uuid', 16)->unique();
-            $table->foreignId('schema_id')->index();
+            $table->foreignId('schema_id')->constrained('schemas')->onDelete('cascade');
             $table->string('name');
             $table->string('type');
             $table->json('properties');

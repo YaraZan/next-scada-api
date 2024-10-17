@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('workspaces', function (Blueprint $table) {
             $table->id();
             $table->binary('uuid', 16)->unique();
-            $table->foreignId('owner_id')->index();
-            $table->enum('protocol', ['DA', 'UA', 'AC', 'HDA', 'A&E']);
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
+            $table->enum('protocol', ['DA', 'UA', 'AC', 'HDA', 'ANE']);
             $table->string('name');
             $table->string('opc_name');
             $table->string('connection_string');

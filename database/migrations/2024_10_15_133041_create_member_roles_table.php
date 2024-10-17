@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_workspace', function (Blueprint $table) {
+        Schema::create('member_roles', function (Blueprint $table) {
             $table->id();
             $table->binary('uuid', 16)->unique();
-            $table->foreignId('workspace_id')->index();
+            $table->foreignId('workspace_id')->constrained('workspaces')->onDelete('cascade');
             $table->string('name');
             $table->string('color');
             $table->boolean('can_write_tags');
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_workspace');
+        Schema::dropIfExists('member_roles');
     }
 };

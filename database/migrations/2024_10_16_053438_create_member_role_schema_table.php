@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_workspace_schema', function (Blueprint $table) {
+        Schema::create('member_role_schema', function (Blueprint $table) {
             $table->id();
             $table->binary('uuid', 16)->unique();
-            $table->foreignId('schema_id')->index();
-            $table->foreignId('role_workspace_id')->index();
+            $table->foreignId('schema_id')->constrained('schemas')->onDelete('cascade');
+            $table->foreignId('member_role_id')->constrained('member_roles')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_workspace_schema');
+        Schema::dropIfExists('member_role_schema');
     }
 };
