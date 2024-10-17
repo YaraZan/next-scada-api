@@ -17,6 +17,11 @@ class Node extends Model
         'position'
     ];
 
+    protected $casts = [
+        'properties' => 'array',
+        'position' => 'array',
+    ];
+
     public function schema()
     {
         return $this->belongsTo(Schema::class);
