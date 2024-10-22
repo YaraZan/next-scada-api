@@ -57,4 +57,16 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function workspaces()
+    {
+        return $this->belongsToMany(Workspace::class)
+            ->withPivot('uuid', 'member_role_id')
+            ->withTimestamps();
+    }
+
+    public function memberRole()
+    {
+        return $this->belongsTo(MemberRole::class);
+    }
 }
