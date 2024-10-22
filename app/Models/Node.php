@@ -19,6 +19,7 @@ class Node extends Model
 
     protected $casts = [
         'properties' => 'array',
+        'styles' => 'array',
         'position' => 'array',
     ];
 

@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('nodes', function (Blueprint $table) {
             $table->id();
             $table->binary('uuid', 16)->unique();
-            $table->foreignId('schema_id')->constrained('schemas')->onDelete('cascade');
+            $table->foreignId('schema_id')->nullable()->constrained('schemas')->onDelete('cascade');
             $table->string('name');
             $table->string('type');
-            $table->json('properties');
-            $table->json('position');
+            $table->json('properties')->nullable();
+            $table->json('styles')->nullable();
+            $table->json('position')->nullable();
             $table->timestamps();
         });
     }
