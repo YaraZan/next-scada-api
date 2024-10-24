@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -32,12 +33,20 @@ class UserFactory extends Factory
         ];
     }
 
+    public function withRole(string $roleName): static
+    {
+        return $this->afterMaking(function ($user) use ($roleName) {
+            $role = Role::where('name', $roleName)->first();
+            $user->role()->associate($role);
+        });
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

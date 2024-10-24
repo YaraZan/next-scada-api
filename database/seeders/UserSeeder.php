@@ -24,5 +24,7 @@ class UserSeeder extends Seeder
 
         $admin->role()->associate($adminRole);
         $admin->save();
+
+        User::factory(10)->withRole('user')->create();
     }
 }
