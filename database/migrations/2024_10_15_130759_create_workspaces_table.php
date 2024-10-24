@@ -1,6 +1,5 @@
 <?php
 
-use App\ProtocolEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->binary('uuid', 16)->unique();
             $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
-            $table->enum('protocol', ProtocolEnum::cases());
+            $table->string('protocol');
             $table->string('name');
             $table->string('opc_name');
             $table->string('connection_string');
