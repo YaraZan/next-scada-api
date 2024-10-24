@@ -8,7 +8,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class UserSeeder extends Seeder
+class RootUserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -24,7 +24,5 @@ class UserSeeder extends Seeder
 
         $admin->role()->associate($adminRole);
         $admin->save();
-
-        User::factory(10)->withRole('user')->create();
     }
 }

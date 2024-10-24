@@ -7,7 +7,7 @@ use App\Models\Workspace;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class WorkspaceSeeder extends Seeder
+class RootUserWorkspacesSeeder extends Seeder
 {
     /**
      * Run the database seeds.
