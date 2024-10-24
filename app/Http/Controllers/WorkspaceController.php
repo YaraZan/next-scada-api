@@ -24,8 +24,20 @@ class WorkspaceController extends Controller
         }
 
         return Workspace::with(['owner'])
-            ->where('owner', Auth::user())
-            ->get();
+        ->where('owner_id', Auth::id())
+        ->get();
+    }
+
+    /**
+     * Display a list of workspaces where user invited.
+     */
+    public function shared()
+    {
+        if (!Gate::allows('viewShared', Workspace::class)) {
+            abort(403);
+        }
+
+        return User::with(['workspaces'])->find(Auth::id());
     }
 
     /**
@@ -46,13 +58,13 @@ class WorkspaceController extends Controller
      */
     public function show($uuid)
     {
-        $workspace = Workspace::with(['owner', 'users'])->findByUuid($uuid);
+        $workspace = Workspace::findByUuid($uuid);
 
         if (!Gate::allows('view', $workspace)) {
             abort(403);
         }
 
-        return Workspace::with(['owner'])->findByUuid($uuid);
+        return $workspace->load(['owner', 'users']);
     }
 
     /**
@@ -89,7 +101,7 @@ class WorkspaceController extends Controller
     {
         $validated = $request->validated();
 
-        $workspace = Workspace::with('users')->findByUuid($validated['workspace']);
+        $workspace = Workspace::findByUuid($validated['workspace'])->load(['users']);
         $invitedUser = User::findByUuid($validated['user']);
 
         if (!Gate::allows('share', [$workspace, $invitedUser])) {
@@ -103,7 +115,7 @@ class WorkspaceController extends Controller
     {
         $validated = $request->validated();
 
-        $workspace = Workspace::with('users')->findByUuid($validated['workspace']);
+        $workspace = Workspace::findByUuid($validated['workspace'])->load(['users']);
         $invitedUser = User::findByUuid($validated['user']);
 
         if (!Gate::allows('unshare', [$workspace, $invitedUser])) {

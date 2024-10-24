@@ -11,7 +11,7 @@ class WorkspacePolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(): bool
     {
         // Any authenticated user should be able to see a list of workspaces they belong to
         return true;
@@ -27,9 +27,18 @@ class WorkspacePolicy
     }
 
     /**
+     * Determine whether the user can view shared models.
+     */
+    public function viewShared(): bool
+    {
+        // User can view the workspace if they are the owner or an invited user
+        return true;
+    }
+
+    /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(): bool
     {
         // Any authenticated user can create a workspace
         return true;
