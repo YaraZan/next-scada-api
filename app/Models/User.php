@@ -31,6 +31,8 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
+        'id',
+        'role_id',
         'password',
         'remember_token',
     ];
@@ -61,7 +63,7 @@ class User extends Authenticatable
     public function workspaces()
     {
         return $this->belongsToMany(Workspace::class)
-            ->withPivot('uuid', 'member_role_id')
+            ->withPivot('member_role_id')
             ->withTimestamps();
     }
 

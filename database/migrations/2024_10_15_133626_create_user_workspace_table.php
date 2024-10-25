@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('user_workspace', function (Blueprint $table) {
             $table->id();
-            $table->binary('uuid', 16)->unique();
             $table->foreignId('workspace_id')->constrained('workspaces')->onDelete('cascade');
             $table->foreignId('user_id')->index();
             $table->foreignId('member_role_id')->nullable();

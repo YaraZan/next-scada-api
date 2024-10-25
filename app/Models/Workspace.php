@@ -12,7 +12,8 @@ class Workspace extends Model
     use HasFactory, HasUuid;
 
     protected $hidden = [
-        'id'
+        'id',
+        'owner_id',
     ];
 
     protected $fillable = [
@@ -23,12 +24,9 @@ class Workspace extends Model
         'host',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'protocol' => ProtocolEnum::class,
-        ];
-    }
+    protected $casts = [
+        'protocol' => ProtocolEnum::class,
+    ];
 
     public function schemas()
     {
@@ -42,13 +40,13 @@ class Workspace extends Model
 
     public function owner()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     public function users()
     {
         return $this->belongsToMany(User::class)
-            ->withPivot('uuid', 'member_role_id')
+            ->withPivot('member_role_id')
             ->withTimestamps();
     }
 }
