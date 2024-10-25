@@ -2,234 +2,275 @@
 
 use App\Models\User;
 use App\Models\Workspace;
-use Database\Seeders\RootUserSeeder;
-use Database\Seeders\RootUserWorkspacesSeeder;
+use App\ProtocolEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('User can get all his workspaces', function () {
-    // Run all seeders
-    $workspace = Workspace::factory()->create();
+    $this->seed();
 
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspace->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
+    $owner = User::factory()->withRole('user')->create();
+    Workspace::factory(3)->withOwner($owner)->create();
 
-    $tokenResponse->assertStatus(200);
-
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->get('/api/workspaces');
+    // Authenticate and get workspaces
+    $response = $this->actingAs($owner, 'sanctum')
+        ->getJson('/api/workspaces');
 
     $response->assertStatus(200);
-
-    $this->assertCount(1, (array) $response->getContent());
+    $this->assertCount(3, $response->json());
 });
 
-test('User can get one his workspace', function () {
-    $workspace = Workspace::factory()->create();
+test('User can get one of his workspaces', function () {
+    $this->seed();
 
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspace->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
 
-    $tokenResponse->assertStatus(200);
-
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->get('/api/workspaces/' . $workspace->uuid);
+    // Authenticate and get workspace
+    $response = $this->actingAs($owner, 'sanctum')
+        ->getJson('/api/workspaces/' . $workspace->uuid);
 
     $response->assertStatus(200);
-
     $this->assertNotNull($response->getContent());
 });
 
-test('User can share workspace with other user', function () {
-    $workspace = Workspace::factory()->create();
+test('User can share workspace with another user', function () {
+    $this->seed();
+
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
     $user = User::factory()->withRole('user')->create();
 
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspace->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
-
-    $tokenResponse->assertStatus(200);
-
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->post('/api/workspaces/share', [
-        'workspace' => $workspace->uuid,
-        'user' => $user->uuid,
-    ]);
-
-    print_r($response->getContent());
+    // Authenticate owner and share workspace
+    $response = $this->actingAs($owner, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspace->uuid,
+            'user' => $user->uuid,
+        ]);
 
     $response->assertStatus(200);
 
-    $workspace = Workspace::findByUuid($workspace->uuid)->load(['users']);
-
+    $workspace->refresh();
     $this->assertNotEmpty($workspace->users);
 });
 
-test('User can unshare workspace with other user', function () {
-    $workspace = Workspace::factory()->create();
+test('User can unshare workspace with another user', function () {
+    $this->seed();
+
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
     $user = User::factory()->withRole('user')->create();
 
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspace->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
+    // Authenticate owner and share workspace
+    $this->actingAs($owner, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspace->uuid,
+            'user' => $user->uuid,
+        ])->assertStatus(200);
 
-    $tokenResponse->assertStatus(200);
-
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->post('/api/workspaces/share', [
-        'workspace' => $workspace->uuid,
-        'user' => $user->uuid,
-    ]);
-
-    $response->assertStatus(200);
-
-    $workspace = Workspace::findByUuid($workspace->uuid)->load(['users']);
-
+    $workspace->refresh();
     $this->assertNotEmpty($workspace->users);
 
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->post('/api/workspaces/unshare', [
-        'workspace' => $workspace->uuid,
-        'user' => $user->uuid,
-    ]);
+    // Unshare workspace
+    $this->actingAs($owner, 'sanctum')
+        ->postJson('/api/workspaces/unshare', [
+            'workspace' => $workspace->uuid,
+            'user' => $user->uuid,
+        ])->assertStatus(200);
 
-    $workspace->load('users');
-
+    $workspace->refresh();
     $this->assertEmpty($workspace->users);
 });
 
-test('User can get one workspace, if he is invited', function () {
-    $workspace = Workspace::factory()->create();
+test('User can get one workspace if they are invited', function () {
+    $this->seed();
+
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
     $user = User::factory()->withRole('user')->create();
 
-    // Authorize workspace owner
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspace->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
-    $tokenResponse->assertStatus(200);
+    // Owner shares the workspace with user
+    $this->actingAs($owner, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspace->uuid,
+            'user' => $user->uuid,
+        ])->assertStatus(200);
 
-    // Share workspace with other user
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->post('/api/workspaces/share', [
-        'workspace' => $workspace->uuid,
-        'user' => $user->uuid,
-    ]);
+    // Invited user retrieves the shared workspace
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/workspaces/' . $workspace->uuid);
+
     $response->assertStatus(200);
 
-    // Authorize other user
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $user->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
-
-    // Try to view shared workspace from other user
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->get('/api/workspaces/' . $workspace->uuid);
-    $response->assertStatus(200);
-
-    $this->assertNotNull($response->getContent());
+    $this->assertNotNull($response->json());
 });
 
-test('User can get all workspaces where he is invited', function () {
-    $workspaceOne = Workspace::factory()->create();
-    $workspaceTwo = Workspace::factory()->create();
+test('User can get all workspaces where they are invited', function () {
+    $this->seed();
+
+    $userOne = User::factory()->withRole('user')->create();
+    $userTwo = User::factory()->withRole('user')->create();
+    $workspaceOne = Workspace::factory()->withOwner($userOne)->create();
+    $workspaceTwo = Workspace::factory()->withOwner($userTwo)->create();
+    $invitedUser = User::factory()->withRole('user')->create();
+
+    // User One shares workspaceOne with invitedUser
+    $this->actingAs($userOne, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspaceOne->uuid,
+            'user' => $invitedUser->uuid,
+        ])->assertStatus(200);
+
+    // User Two shares workspaceTwo with invitedUser
+    $this->actingAs($userTwo, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspaceTwo->uuid,
+            'user' => $invitedUser->uuid,
+        ])->assertStatus(200);
+
+    // Invited user retrieves all shared workspaces
+    $response = $this->actingAs($invitedUser, 'sanctum')
+        ->getJson('/api/workspaces/shared');
+
+    $response->assertStatus(200);
+    $this->assertCount(2, $response->json());
+});
+
+test('User can create workspace', function () {
+    $this->seed();
+
+    $user = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->make()->toArray();
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/workspaces/', $workspace)
+        ->assertStatus(200);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/workspaces/')
+        ->assertStatus(200);
+
+    $this->assertCount(1, $response->json());
+});
+
+test('User can update workspace', function () {
+    $this->seed();
+
+    $user = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($user)->create();
+
+    $fakeName = fake()->company();
+
+    $this->actingAs($user, 'sanctum')
+        ->putJson('/api/workspaces/' . $workspace->uuid, [
+            'name' => $fakeName
+        ])
+        ->assertStatus(200);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/workspaces/' . $workspace->uuid)
+        ->assertStatus(200);
+
+    $this->assertTrue($workspace->name !== $response['name']);
+    $this->assertTrue($fakeName === $response['name']);
+});
+
+test('User can delete workspace', function () {
+    $this->seed();
+
+    $user = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($user)->create();
+
+    $this->actingAs($user, 'sanctum')
+        ->deleteJson('/api/workspaces/' . $workspace->uuid)
+        ->assertStatus(200);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/workspaces/')
+        ->assertStatus(200);
+
+    $this->assertEmpty($response->json());
+});
+
+test('User cannot get workspace if he is not invited', function () {
+    $this->seed();
+
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
     $user = User::factory()->withRole('user')->create();
 
-    // Authorize workspace one owner
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspaceOne->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
-    $tokenResponse->assertStatus(200);
+    $this->actingAs($user, 'sanctum')
+        ->getJson('/api/workspaces/' . $workspace->uuid)
+        ->assertStatus(403);
+});
 
-    // Share workspace one with other user
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->post('/api/workspaces/share', [
-        'workspace' => $workspaceOne->uuid,
-        'user' => $user->uuid,
-    ]);
-    $response->assertStatus(200);
+test('User cannot update workspace if he is not owner', function () {
+    $this->seed();
 
-    // Authorize workspace two owner
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $workspaceTwo->owner->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
-    $tokenResponse->assertStatus(200);
+    $user = User::factory()->withRole('user')->create();
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
 
-    // Share workspace two with other user
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->post('/api/workspaces/share', [
-        'workspace' => $workspaceTwo->uuid,
-        'user' => $user->uuid,
-    ]);
-    $response->assertStatus(200);
+    $fakeName = fake()->company();
 
-    // Authorize other user
-    $tokenResponse = $this->withHeaders([
-        'Accept' => 'application/json',
-    ])->post('/api/users/login', [
-        'email' => $user->email,
-        'password' => 'password',
-        'device_name' => 'default'
-    ]);
+    $this->actingAs($user, 'sanctum')
+        ->putJson('/api/workspaces/' . $workspace->uuid, [
+            'name' => $fakeName
+        ])
+        ->assertStatus(403);
+});
 
-    // Try to view all shared workspaces from other user
-    $response = $this->withHeaders([
-        'Accept' => 'application/json',
-        'Authorization' => 'Bearer ' . $tokenResponse->getContent(),
-    ])->get('/api/workspaces/shared');
-    $response->assertStatus(200);
+test('User cannot delete workspace if he is not owner', function () {
+    $this->seed();
 
-    $this->assertCount(2, $response->getContent());
+    $user = User::factory()->withRole('user')->create();
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
+
+    $this->actingAs($user, 'sanctum')
+        ->deleteJson('/api/workspaces/' . $workspace->uuid)
+        ->assertStatus(403);
+});
+
+test('User cannot share workspace if he is not owner', function () {
+    $this->seed();
+
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
+    $user = User::factory()->withRole('user')->create();
+    $otherUser = User::factory()->withRole('user')->create();
+
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspace->uuid,
+            'user' => $otherUser->uuid,
+        ])
+        ->assertStatus(403);
+});
+
+test('User cannot unshare workspace if he is not owner', function () {
+    $this->seed();
+
+    $owner = User::factory()->withRole('user')->create();
+    $workspace = Workspace::factory()->withOwner($owner)->create();
+    $user = User::factory()->withRole('user')->create();
+    $otherUser = User::factory()->withRole('user')->create();
+
+    // Authenticate owner and share workspace
+    $this->actingAs($owner, 'sanctum')
+        ->postJson('/api/workspaces/share', [
+            'workspace' => $workspace->uuid,
+            'user' => $otherUser->uuid,
+        ])->assertStatus(200);
+
+    $workspace->refresh();
+    $this->assertNotEmpty($workspace->users);
+
+    // Unshare workspace
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/workspaces/unshare', [
+            'workspace' => $workspace->uuid,
+            'user' => $otherUser->uuid,
+        ])->assertStatus(403);
 });
