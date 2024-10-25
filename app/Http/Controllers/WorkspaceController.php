@@ -37,7 +37,7 @@ class WorkspaceController extends Controller
             abort(403);
         }
 
-        return User::with(['workspaces'])->find(Auth::id());
+        return User::with(['workspaces'])->find(Auth::id())->workspaces;
     }
 
     /**
