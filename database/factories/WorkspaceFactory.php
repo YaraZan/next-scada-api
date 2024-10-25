@@ -24,7 +24,13 @@ class WorkspaceFactory extends Factory
             'opc_name' => $this->faker->word,
             'connection_string' => $this->faker->url,
             'host' => $this->faker->domainName,
-            'owner_id' => User::factory()->withRole('user')->create(),
         ];
+    }
+
+    public function withOwner(User $user): static
+    {
+        return $this->afterMaking(function ($workspace) use ($user) {
+            $workspace->owner()->associate($user);
+        });
     }
 }

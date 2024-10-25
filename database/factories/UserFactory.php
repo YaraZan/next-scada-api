@@ -35,9 +35,12 @@ class UserFactory extends Factory
 
     public function withRole(string $roleName): static
     {
-        return $this->afterMaking(function ($user) use ($roleName) {
+        return $this->state(function (array $attributes) use ($roleName) {
             $role = Role::where('name', $roleName)->first();
-            $user->role()->associate($role);
+
+            return [
+                'role_id' => $role->id,
+            ];
         });
     }
 
