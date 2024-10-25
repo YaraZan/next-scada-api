@@ -2,10 +2,6 @@
 
 ---
 
-Here's a concise README outline for `next-scada-api` with essential requirements and references:
-
----
-
 # Next SCADA API
 
 Next-SCADA-API is a Laravel-based REST API that serves as the backend for the SCADA-Next client desktop applications. 
