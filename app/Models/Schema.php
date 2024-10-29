@@ -11,7 +11,8 @@ class Schema extends Model
     use HasFactory, HasUuid;
 
     protected $hidden = [
-        'id'
+        'id',
+        'creator_id'
     ];
 
     protected $fillable = [
