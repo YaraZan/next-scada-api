@@ -27,4 +27,9 @@ class Schema extends Model
     {
         return $this->hasMany(Node::class);
     }
+
+    public function memberRoles()
+    {
+        return $this->belongsToMany(MemberRole::class);
+    }
 }
