@@ -33,6 +33,6 @@ class MemberRole extends Model
 
     public function schemas()
     {
-        return $this->hasMany(Schema::class);
+        return $this->belongsToMany(Schema::class);
     }
 }
