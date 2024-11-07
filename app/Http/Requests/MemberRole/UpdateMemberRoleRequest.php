@@ -19,7 +19,6 @@ class UpdateMemberRoleRequest extends FormRequest
             'color' => ['nullable', 'string', 'regex:/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'],
             'description' => ['nullable', 'string'],
             'can_write_tags' => ['nullable', 'boolean'],
-            'can_edit_tags' => ['nullable', 'boolean'],
             'can_create_schemas' => ['nullable', 'boolean'],
             'schemas' => ['nullable', 'array', 'exists:schemas,uuid'],
             'schemas.*' => ['uuid']
