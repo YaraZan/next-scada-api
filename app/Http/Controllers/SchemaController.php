@@ -68,6 +68,7 @@ class SchemaController extends Controller
 
         $schema = Schema::make($validated['name']);
         $schema->workspace()->associate($workspace);
+        $schema->save();
     }
 
     /**

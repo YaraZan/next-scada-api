@@ -28,4 +28,9 @@ class Schema extends Model
     {
         return $this->hasMany(Node::class);
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
 }
