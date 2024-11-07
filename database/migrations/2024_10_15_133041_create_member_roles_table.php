@@ -16,7 +16,7 @@ return new class extends Migration
             $table->binary('uuid', 16)->unique();
             $table->foreignId('workspace_id')->constrained('workspaces')->onDelete('cascade');
             $table->string('name');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->string('color');
             $table->boolean('can_write_tags');
             $table->boolean('can_create_schemas');
