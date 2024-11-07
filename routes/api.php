@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MemberRoleController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
@@ -34,3 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+/**
+ * Member roles
+ */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/memberRoles/fromWorkspace/{workspaceUuid}', [MemberRoleController::class, 'viewFromWorkspace']);
+    Route::resource('memberRoles', MemberRoleController::class);
+});
