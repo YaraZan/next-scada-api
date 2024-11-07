@@ -11,7 +11,8 @@ class Schema extends Model
     use HasFactory, HasUuid;
 
     protected $hidden = [
-        'id'
+        'id',
+        'creator_id'
     ];
 
     protected $fillable = [
@@ -31,5 +32,10 @@ class Schema extends Model
     public function memberRoles()
     {
         return $this->belongsToMany(MemberRole::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MemberRoleController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SchemaController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkspaceController;
@@ -32,6 +33,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/workspaces/unshare', 'unshare');
     });
     Route::resource('workspaces', WorkspaceController::class);
+});
+
+/**
+ * Schemas
+ */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/schemas/workspace/{workspace}', [SchemaController::class, 'fromWorkspace']);
+    Route::resource('schemas', SchemaController::class);
 });
 
 

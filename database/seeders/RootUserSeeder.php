@@ -16,7 +16,7 @@ class RootUserSeeder extends Seeder
     public function run(): void
     {
         $adminRole = Role::where('name', 'root')->first();
-        $admin = User::create([
+        $admin = User::make([
             'name' => config('app.root_user.name'),
             'email' => config('app.root_user.email'),
             'password' => Hash::make(config('app.root_user.password')),

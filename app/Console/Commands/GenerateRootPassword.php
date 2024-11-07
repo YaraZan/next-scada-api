@@ -36,7 +36,7 @@ class GenerateRootPassword extends Command
         $password = $faker->password($minLength, $maxLength);
 
         // Update or add the password in the .env file
-        $this->setEnv('APP_ROOT_USER_PASSWORD', $password);
+        $this->setEnv('ROOT_USER_PASSWORD', $password);
 
         $this->info('Random password generated and added to .env file: ' . $password);
     }
