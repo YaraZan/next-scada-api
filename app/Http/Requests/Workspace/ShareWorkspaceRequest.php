@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Workspace;
 
+use App\Rules\GuestOrCustomMemberRole;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ShareWorkspaceRequest extends FormRequest
@@ -15,7 +16,8 @@ class ShareWorkspaceRequest extends FormRequest
     {
         return [
             'workspace' => ['required', 'uuid'],
-            'user' => ['required', 'uuid']
+            'user' => ['required', 'uuid'],
+            'member_role' => ['required', new GuestOrCustomMemberRole]
         ];
     }
 }
