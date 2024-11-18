@@ -48,6 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
  * Member roles
  */
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/memberRoles/fromWorkspace/{workspaceUuid}', [MemberRoleController::class, 'viewFromWorkspace']);
+    Route::controller(MemberRoleController::class)->group(function () {
+        Route::get('/memberRoles/fromWorkspace/{workspaceUuid}', 'viewFromWorkspace');
+        Route::post('/memberRoles/attachSchema', 'attachSchema');
+        Route::post('/memberRoles/detachSchema', 'detachSchema');
+        Route::post('/memberRoles/assignToUser', 'assignToUser');
+    });
     Route::resource('memberRoles', MemberRoleController::class);
 });

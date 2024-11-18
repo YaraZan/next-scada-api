@@ -16,12 +16,13 @@ class SchemaPolicy
      * - Owner of workspace
      * - Workspace member
      */
-    public function viewFromWorkspace(User $user, Schema $schema): bool
+    public function viewFromWorkspace(User $user, Workspace $workspace): bool
     {
-        return $schema->workspace->owner_id === $user->id
-            || $schema->workspace->users
+        return $workspace->owner_id === $user->id
+            || $workspace->users
             ->where('user_id', $user->id)
-            ->isNotEmpty();
+            ->isNotEmpty()
+            && !is_null($user->memberRoleInWorkspace($workspace));
     }
 
     /**
