@@ -67,8 +67,9 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function memberRole()
+    public function memberRoleInWorkspace($workspaceId)
     {
-        return $this->belongsTo(MemberRole::class);
+        $workspace = $this->workspaces()->where('workspace_id', $workspaceId)->first();
+        return $workspace ? MemberRole::find($workspace->pivot->member_role_id) : null;
     }
 }
