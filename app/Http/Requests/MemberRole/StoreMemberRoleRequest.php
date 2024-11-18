@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\MemberRole;
 
+use App\Rules\BinaryUuidExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMemberRoleRequest extends FormRequest
@@ -14,14 +15,14 @@ class StoreMemberRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'workspace' => ['required', 'uuid', 'exists:workspaces,uuid'],
+            'workspace' => ['required', 'uuid', new BinaryUuidExists('workspaces')],
             'name' => ['required', 'string', 'max:255'],
             'color' => ['required', 'string', 'regex:/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'],
             'description' => ['nullable', 'string'],
             'can_write_tags' => ['required', 'boolean'],
             'can_create_schemas' => ['required', 'boolean'],
-            'schemas' => ['required', 'array', 'exists:schemas,uuid'],
-            'schemas.*' => ['uuid']
+            'schemas' => ['required', 'array'],
+            'schemas.*' => ['uuid', new BinaryUuidExists('schemas')]
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\MemberRole;
 
+use App\Rules\BinaryUuidExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateMemberRoleRequest extends FormRequest
@@ -14,14 +15,11 @@ class UpdateMemberRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'workspace' => ['required', 'uuid', 'exists:workspaces,uuid'],
             'name' => ['nullable', 'string', 'max:255'],
             'color' => ['nullable', 'string', 'regex:/^#([a-f0-9]{6}|[a-f0-9]{3})$/i'],
             'description' => ['nullable', 'string'],
             'can_write_tags' => ['nullable', 'boolean'],
             'can_create_schemas' => ['nullable', 'boolean'],
-            'schemas' => ['nullable', 'array', 'exists:schemas,uuid'],
-            'schemas.*' => ['uuid']
         ];
     }
 }
