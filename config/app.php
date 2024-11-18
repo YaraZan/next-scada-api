@@ -133,9 +133,9 @@ return [
     */
 
     'root_user' => [
-        'name' => env('APP_ROOT_USER_NAME', ''),
-        'email' => env('APP_ROOT_USER_EMAIL', ''),
-        'password' => env('APP_ROOT_USER_PASSWORD', ''),
+        'name' => env('ROOT_USER_NAME', ''),
+        'email' => env('ROOT_USER_EMAIL', ''),
+        'password' => env('ROOT_USER_PASSWORD', ''),
     ]
 
 ];

@@ -47,4 +47,14 @@ trait HasUuid
 
         return static::where('uuid', '=', $binaryUuid)->firstOrFail();
     }
+
+    /**
+     * Get IDs for an array of UUIDs, converting them to binary format.
+     */
+    public static function getByUuids(array $uuids)
+    {
+        $binaryUuids = array_map(fn($uuid) => hex2bin(str_replace('-', '', $uuid)), $uuids);
+
+        return static::whereIn('uuid', $binaryUuids);
+    }
 }

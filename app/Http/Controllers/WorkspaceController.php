@@ -6,6 +6,7 @@ use App\Http\Requests\Workspace\ShareWorkspaceRequest;
 use App\Http\Requests\Workspace\StoreWorkspaceRequest;
 use App\Http\Requests\Workspace\UnshareWorkspaceRequest;
 use App\Http\Requests\Workspace\UpdateWorkspaceRequest;
+use App\Models\MemberRole;
 use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
@@ -108,7 +109,13 @@ class WorkspaceController extends Controller
             abort(403);
         }
 
-        $workspace->users()->attach($invitedUser->id);
+        if ($validated['member_role'] !== 'guest') {
+            $memberRole = MemberRole::findByUuid($validated['member_role']);
+
+            $workspace->users()->attach($invitedUser->id, ['member_role_id' => $memberRole->id]);
+        } else {
+            $workspace->users()->attach($invitedUser->id);
+        }
     }
 
     public function unshare(UnshareWorkspaceRequest $request)

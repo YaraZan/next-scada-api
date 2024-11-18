@@ -43,13 +43,15 @@ test('User can share workspace with another user', function () {
     $user = User::factory()->withRole('user')->create();
 
     // Authenticate owner and share workspace
-    $response = $this->actingAs($owner, 'sanctum')
+    $this->actingAs($owner, 'sanctum')
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspace->uuid,
             'user' => $user->uuid,
-        ]);
+            'member_role' => 'guest'
+        ])
+        ->assertStatus(200);
 
-    $response->assertStatus(200);
+/*     print_r($response->getContent()); */
 
     $workspace->refresh();
     $this->assertNotEmpty($workspace->users);
@@ -67,6 +69,7 @@ test('User can unshare workspace with another user', function () {
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspace->uuid,
             'user' => $user->uuid,
+            'member_role' => 'guest'
         ])->assertStatus(200);
 
     $workspace->refresh();
@@ -95,6 +98,7 @@ test('User can get one workspace if they are invited', function () {
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspace->uuid,
             'user' => $user->uuid,
+            'member_role' => 'guest'
         ])->assertStatus(200);
 
     // Invited user retrieves the shared workspace
@@ -120,6 +124,7 @@ test('User can get all workspaces where they are invited', function () {
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspaceOne->uuid,
             'user' => $invitedUser->uuid,
+            'member_role' => 'guest'
         ])->assertStatus(200);
 
     // User Two shares workspaceTwo with invitedUser
@@ -127,6 +132,7 @@ test('User can get all workspaces where they are invited', function () {
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspaceTwo->uuid,
             'user' => $invitedUser->uuid,
+            'member_role' => 'guest'
         ])->assertStatus(200);
 
     // Invited user retrieves all shared workspaces
@@ -245,6 +251,7 @@ test('User cannot share workspace if he is not owner', function () {
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspace->uuid,
             'user' => $otherUser->uuid,
+            'member_role' => 'guest'
         ])
         ->assertStatus(403);
 });
@@ -262,6 +269,7 @@ test('User cannot unshare workspace if he is not owner', function () {
         ->postJson('/api/workspaces/share', [
             'workspace' => $workspace->uuid,
             'user' => $otherUser->uuid,
+            'member_role' => 'guest'
         ])->assertStatus(200);
 
     $workspace->refresh();

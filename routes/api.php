@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\MemberRoleController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SchemaController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkspaceController;
@@ -33,4 +35,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('workspaces', WorkspaceController::class);
 });
 
+/**
+ * Schemas
+ */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/schemas/workspace/{workspace}', [SchemaController::class, 'fromWorkspace']);
+    Route::resource('schemas', SchemaController::class);
+});
 
+
+/**
+ * Member roles
+ */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::controller(MemberRoleController::class)->group(function () {
+        Route::get('/memberRoles/fromWorkspace/{workspaceUuid}', 'viewFromWorkspace');
+        Route::post('/memberRoles/attachSchema', 'attachSchema');
+        Route::post('/memberRoles/detachSchema', 'detachSchema');
+        Route::post('/memberRoles/assignToUser', 'assignToUser');
+    });
+    Route::resource('memberRoles', MemberRoleController::class);
+});
