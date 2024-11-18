@@ -40,9 +40,9 @@ class MemberRoleFactory extends Factory
     /**
      * Associate the schemas with a specific member role.
      */
-    public function withSchemas(array $schemas): static
+    public function withSchemas($schemas): static
     {
-        return $this->afterMaking(function ($memberRole) use ($schemas) {
+        return $this->afterCreating(function ($memberRole) use ($schemas) {
             $memberRole->schemas()->attach($schemas);
         });
     }
