@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MemberRole\AssignToUserMemberRoleRequest;
+use App\Http\Requests\MemberRole\AttachSchemaMemberRoleRequest;
+use App\Http\Requests\MemberRole\DetachSchemaMemberRoleRequest;
 use App\Http\Requests\MemberRole\StoreMemberRoleRequest;
 use App\Http\Requests\MemberRole\UpdateMemberRoleRequest;
 use App\Models\MemberRole;
 use App\Models\Schema;
+use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -32,7 +36,7 @@ class MemberRoleController extends Controller
     public function store(StoreMemberRoleRequest $request)
     {
         $validated = $request->validated();
-        $workspace = Workspace::findByUuid($validated->workspace);
+        $workspace = Workspace::findByUuid($validated['workspace']);
 
         if (!Gate::allows('create', $workspace)) {
             abort(403);
@@ -42,8 +46,15 @@ class MemberRoleController extends Controller
         $memberRole->workspace()->associate($workspace);
         $memberRole->save();
 
-        $schemaIds = Schema::whereIn('uuid', $validated->schemas)->pluck('id');
-        $memberRole->schemas()->attach($schemaIds);
+        if (isset($validated['schemas'])) {
+            $schemaIds = Schema::getByUuids($validated['schemas'])->pluck('id')->toArray();
+
+            if (!empty($schemaIds)) {
+                foreach ($schemaIds as $id) {
+                    $memberRole->schemas()->detach($id);
+                }
+            }
+        }
     }
 
     /**
@@ -60,6 +71,46 @@ class MemberRoleController extends Controller
         return $memberRole;
     }
 
+    public function attachSchema(AttachSchemaMemberRoleRequest $request)
+    {
+        $validated = $request->validated();
+        $memberRole = MemberRole::findByUuid($validated['member_role']);
+
+        if (!Gate::allows('attachSchema', $memberRole)) {
+            abort(403);
+        }
+
+        if (isset($validated['schemas'])) {
+            $schemaIds = Schema::getByUuids($validated['schemas'])->pluck('id')->toArray();
+
+            if (!empty($schemaIds)) {
+                foreach ($schemaIds as $id) {
+                    $memberRole->schemas()->attach($id);
+                }
+            }
+        }
+    }
+
+    public function detachSchema(DetachSchemaMemberRoleRequest $request)
+    {
+        $validated = $request->validated();
+        $memberRole = MemberRole::findByUuid($validated['member_role']);
+
+        if (!Gate::allows('detachSchema', $memberRole)) {
+            abort(403);
+        }
+
+        if (isset($validated['schemas'])) {
+            $schemaIds = Schema::getByUuids($validated['schemas'])->pluck('id')->toArray();
+
+            if (!empty($schemaIds)) {
+                foreach ($schemaIds as $id) {
+                    $memberRole->schemas()->detach($id);
+                }
+            }
+        }
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -72,20 +123,13 @@ class MemberRoleController extends Controller
             abort(403);
         }
 
-        $memberRole->fill([
+        $memberRole->update([
             'name' => $validated['name'] ?? $memberRole->name,
             'color' => $validated['color'] ?? $memberRole->color,
             'description' => $validated['description'] ?? $memberRole->description,
             'can_write_tags' => $validated['can_write_tags'] ?? $memberRole->can_write_tags,
             'can_create_schemas' => $validated['can_create_schemas'] ?? $memberRole->can_create_schemas,
         ]);
-
-        if (isset($validated['schemas'])) {
-            $schemaIds = Schema::whereIn('uuid', $validated['schemas'])->pluck('id')->toArray();
-            $memberRole->schemas()->sync($schemaIds);
-        }
-
-        $memberRole->save();
     }
 
     /**
@@ -100,5 +144,36 @@ class MemberRoleController extends Controller
         }
 
         $memberRole->delete();
+    }
+
+    public function assignToUser(AssignToUserMemberRoleRequest $request)
+    {
+        $validated = $request->validated();
+        $user = User::findByUuid($validated['user']);
+        $workspace = Workspace::findByUuid($validated['workspace']);
+
+        if ($validated['member_role'] !== 'guest') {
+            $memberRole = MemberRole::findByUuid($validated['member_role']);
+
+            if (!Gate::allows('assign', [$memberRole, $user])) {
+                abort(403);
+            }
+
+            $user->workspaces()->syncWithoutDetaching([
+                $workspace->id => [
+                    'member_role_id' => $memberRole->id
+                ]
+            ]);
+        } else {
+            if (!Gate::allows('guestify-memberRole', [$workspace, $user])) {
+                abort(403);
+            }
+
+            $user->workspaces()->syncWithoutDetaching([
+                $workspace->id => [
+                    'member_role_id' => null
+                ]
+            ]);
+        }
     }
 }
