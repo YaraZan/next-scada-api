@@ -23,5 +23,6 @@ class AppServiceProvider extends ServiceProvider
     {
         /** Member roles */
         Gate::define('viewFromWorkspace-memberRole', [MemberRolePolicy::class, 'viewFromWorkspace']);
+        Gate::define('guestify-memberRole', [MemberRolePolicy::class, 'guestify']);
     }
 }
